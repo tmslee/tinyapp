@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
   res.send('hello');
 });
 
-app.get('urls.json', (req, res) = {
+app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
