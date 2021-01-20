@@ -25,8 +25,10 @@
       <tbody>
         <% for(let url in urls) { %>
           <tr>
-            <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td>
+              <a href="/u/<%=url%>"> localhost:8080/u/<%= url %></a>
+            </td>
+            <td><%= urls[url].longURL %></td>
             <td>
               <form class="form-inline" action="/urls/<%=url%>" method="GET">
                 <button >Edit</button>
