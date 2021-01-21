@@ -14,11 +14,21 @@
     <%- include('partials/_header') %>
     <main style="margin: 1em;">
       <h3>Log in</h3>
-      <form class="form-inline" action="/login" method="POST">
+      <form action="/login" method="POST">
         <div class="form-group mb-2">
-          <input class="form-control" type="text" name="userId" placeholder="user id" style="width: 150px; margin: 0.5em">
-          <input class="form-control" type="password" name="password"placeholder="password" style="width: 150px; margin: 1em">
-          <button type="submit" class="btn btn-primary">login</button>
+          <span style="display: inline-block;">
+            <div style="float:right;">           
+              <label for="userId" style="text-align:start;">ID: </label>
+              <input class="form-control" type="text" name="userId" placeholder="user id" style="width: 150px; margin: 0.5em; display: inline;">
+            </div>
+            <div style="float:inline-start;">           
+              <label for="password">password: </label>
+              <input class="form-control" type="password" name="password"placeholder="password" style="width: 150px; margin: 1em;display: inline;">
+            </div>
+          </span>
+          <span style="display: inline-block; vertical-align: top;">
+            <button type="submit" class="btn btn-primary" style="height:7em;">login</button>
+          </span>
         </div>
       </form>
     </main>
