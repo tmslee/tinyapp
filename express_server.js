@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const {User} = require('./user');
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+const methodOverride = require('method-override');
 
 const {
   generateRandomString, 
@@ -12,8 +13,9 @@ const {
   authenticateLogin,
   createNewURLObj,
   urlsForUser,
+  getUserByEmail,
   printDB
-} = require('./helper');
+} = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -23,6 +25,7 @@ app.use(morgan('dev'));
 app.use(cookieSession({
   keys:['userId']
 }));
+app.use(methodOverride('_method'));
 
 ////////////////////////////////////////////////////////////////////////////
 const user1 = new User('userId1' , '1@email.com', bcrypt.hashSync('1111', 10),{
@@ -58,7 +61,7 @@ app.get('/login', (req,res) => {
   res.render('login', templateVars);
 });
 
-app.post('/login', (req, res) => {
+app.put('/login', (req, res) => {
   const userId = req.body.userId;
   const password = req.body.password;
   if (authenticateLogin(userId, password, userDB)) {
@@ -67,7 +70,7 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
-app.post('/logout', (req, res) => {
+app.put('/logout', (req, res) => {
   req.session['userId'] = null;
   res.redirect('/urls');
 });
@@ -150,7 +153,7 @@ app.get('/urls/:shortURL',(req, res) => {
 
 
 // delete url
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.delete('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const currUID = req.session['userId'];
   const urlUID = urlDatabase[shortURL].userID;
@@ -164,7 +167,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 // edit url
-app.post('/urls/:shortURL/edit', (req, res) => {
+app.put('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
   const currUID = req.session['userId'];

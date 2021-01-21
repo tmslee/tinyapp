@@ -9,17 +9,17 @@ const generateRandomString = function(len){
   return result;
 };
 
-const addToUserDB = function (users, DB){
+const addToUserDB = function (users, userDB){
   if(Array.isArray(users)){
     let id;
     for(const user of users){
       id = user.id;
-      DB[id] = user;
+      userDB[id] = user;
     }
   }
   else{
     const id = users.id;
-    DB[id] = users;
+    userDB[id] = users;
   }
 }
 
@@ -65,6 +65,14 @@ const printDB = function (userDB, urlDatabase, req){
   console.log(req.cookies['userId']);
 }
 
+const getUserByEmail = function (email, userDB) {
+  for(let id in userDB){
+    const user = userDB[id];
+    if(user.email === email) return id; 
+  }
+  return undefined;
+};
+
 module.exports = {
   generateRandomString, 
   addToUserDB, 
@@ -72,5 +80,6 @@ module.exports = {
   authenticateLogin,
   createNewURLObj,
   urlsForUser,
+  getUserByEmail,
   printDB
 };
