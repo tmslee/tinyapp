@@ -1,40 +1,39 @@
 const bcrypt = require('bcrypt');
 
-const generateRandomString = function(len){
+const generateRandomString = function(len) {
   let result = '';
   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
-  for (let i = 0; i < len; i++){
+  for (let i = 0; i < len; i++) {
     result += CHARS[Math.floor(Math.random()*62)];
   }
   return result;
 };
 
-const addToUserDB = function (users, userDB){
-  if(Array.isArray(users)){
+const addToUserDB = function (users, userDB) {
+  if (Array.isArray(users)) {
     let id;
     for(const user of users){
       id = user.id;
       userDB[id] = user;
     }
-  }
-  else{
+  } else {
     const id = users.id;
     userDB[id] = users;
   }
 }
 
-const checkValidNewUser = function (id, email, pw, vpw, userDB){
-  if(!id || !email || !pw) return false;
-  if(userDB[id]) return false;
-  if(pw !== vpw) return false;
+const checkValidNewUser = function (id, email, pw, vpw, userDB) {
+  if (!id || !email || !pw) return false;
+  if (userDB[id]) return false;
+  if (pw !== vpw) return false;
 
-  for(const user in userDB){
+  for (const user in userDB) {
     if(user.email === email) return false;
   }
   return true;
 }
 
-const authenticateLogin = function(id, password, userDB){
+const authenticateLogin = function(id, password, userDB) {
   if(userDB[id]){
     const correctPW = userDB[id].password;
     return bcrypt.compareSync(password, correctPW);
@@ -42,11 +41,11 @@ const authenticateLogin = function(id, password, userDB){
   return false;
 }
 
-const createNewURLObj = function (longURL, userID){
-  return {longURL, userID};
+const createNewURLObj = function (longURL, userID) {
+  return {longURL, userID, counter:{}, log:{}};
 }
 
-const urlsForUser = function (id, userDB){
+const urlsForUser = function (id, userDB) {
   return userDB[id].urlDB;
 }
 
@@ -59,18 +58,38 @@ const urlsForUser = function(id, urlDB) {
   return userURL;
 }
 */
-const printDB = function (userDB, urlDatabase, req){
+const printDB = function (userDB, urlDatabase, req) {
   console.log(userDB);
   console.log(urlDatabase);
   console.log(req.cookies['userId']);
 }
 
 const getUserByEmail = function (email, userDB) {
-  for(let id in userDB){
+  for (let id in userDB) {
     const user = userDB[id];
-    if(user.email === email) return id; 
+    if (user.email === email) return id; 
   }
   return undefined;
+};
+
+const updateCount = function(urlObj, userID){
+  if (userID === null) {
+    userID = 'visitor';
+  }
+  
+  const counter = urlObj.counter;
+  if (!counter[userID]) {
+    counter[userID] = 1;
+  } else {
+    counter[userID] ++;
+  }
+};
+
+const updateLog = function(urlObj, userID, dateString){
+  if(userID === null){
+    userID = 'visitor';
+  }
+  urlObj.log[dateString] = userID;
 };
 
 module.exports = {
@@ -80,6 +99,8 @@ module.exports = {
   authenticateLogin,
   createNewURLObj,
   urlsForUser,
+  updateCount,
+  updateLog,
   getUserByEmail,
   printDB
 };

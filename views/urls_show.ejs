@@ -13,6 +13,8 @@
       <div class="card-body">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
+        <p class="card-text">total visits: <%= Object.keys(log).length%></p>
+        <p class="card-text">number of unique visits: <%= Object.keys(counter).length%></p>
       </div>
     <div class="card-footer text-muted"></div>
   </div>
@@ -20,7 +22,6 @@
   <div class="card text-center"></div>
     <div class="card-body">
       <h5 class="card-title">Edit</h5>
-
       <form class="form-inline" action="/urls/<%=shortURL%>?_method=PUT" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">New URL:</label>

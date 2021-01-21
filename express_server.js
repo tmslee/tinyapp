@@ -13,6 +13,8 @@ const {
   authenticateLogin,
   createNewURLObj,
   urlsForUser,
+  updateCount,
+  updateLog,
   getUserByEmail,
   printDB
 } = require('./helpers');
@@ -28,20 +30,37 @@ app.use(cookieSession({
 app.use(methodOverride('_method'));
 
 ////////////////////////////////////////////////////////////////////////////
+const urlObj1 = { longURL: "https://www.tsn.ca", userID: "userId1" , counter:{}, log:{}};
+const urlObj2 = { longURL: "https://www.google.ca", userID: "userId1", counter:{}, log:{}};
+const urlObj3 = { longURL: "https://www.youtube.com", userID: "userId2", counter:{}, log:{}};
+const urlObj4 = { longURL: "https://www.yahoo.com", userID: "userId2" , counter:{}, log:{}};
+const urlObj5 = { longURL: "https://www.hotmail.com", userID: "userId3" , counter:{}, log:{}};
+const urlObj6 = { longURL: "https://www.example.edu", userID: "userId3" , counter:{}, log:{}};
+
 const user1 = new User('userId1' , '1@email.com', bcrypt.hashSync('1111', 10),{
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userId1" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "userId1" }
+  b6UTxQ: urlObj1,
+  i3BoGr: urlObj2
 });
-const user2 = new User('userId2' , '2@email.com', bcrypt.hashSync('2222', 10));
-const user3 = new User('userId3' , '3@email.com', bcrypt.hashSync('3333', 10));
+const user2 = new User('userId2' , '2@email.com', bcrypt.hashSync('2222', 10),{
+  aaaaaa: urlObj3,
+  bbbbbb: urlObj4
+});
+const user3 = new User('userId3' , '3@email.com', bcrypt.hashSync('3333', 10),{
+  111111: urlObj5,
+  222222: urlObj6
+});
+
+const urlDatabase ={
+  b6UTxQ: urlObj1,
+  i3BoGr: urlObj2,
+  aaaaaa: urlObj3,
+  bbbbbb: urlObj4,
+  111111: urlObj5,
+  222222: urlObj6
+};
 
 const userDB = {}
 addToUserDB([user1, user2, user3], userDB);
-
-const urlDatabase ={
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userId1" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "userId1" }
-};
 
 ///////////////////////////////////////////////
 ///////////////ROUTES //////////////////////////
@@ -90,7 +109,7 @@ app.post('/register', (req,res) => {
   if(checkValidNewUser(newId, newEmail, newPassword, verPassword, userDB)){
     const hashedPW = bcrypt.hashSync(newPassword, 10);
     userDB[newId] = new User(newId, newEmail, hashedPW);
-    req.session['userId'] = userId;
+    req.session['userId'] = newId;
     res.redirect('/urls');
   }
   else{
@@ -144,10 +163,14 @@ app.get('/urls/new', (req,res) => {
  // show a url
 app.get('/urls/:shortURL',(req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
+  const urlObj = urlDatabase[shortURL];
   const user = userDB[req.session['userId']];
+  const longURL = urlObj.longURL;
+  
+  const counter = urlObj.counter;
+  const log = urlObj.log;
 
-  const templateVars = {shortURL, longURL, user};
+  const templateVars = {shortURL, longURL, user, counter, log};
   res.render('urls_show', templateVars);
 });
 
@@ -159,6 +182,7 @@ app.delete('/urls/:shortURL', (req, res) => {
   const urlUID = urlDatabase[shortURL].userID;
 
   if(currUID === urlUID){
+    // need to delete urlobj from both userDB and urlDB
     delete urlDatabase[shortURL];
     delete urlsForUser(currUID, userDB)[shortURL];
   }
@@ -173,9 +197,9 @@ app.put('/urls/:shortURL', (req, res) => {
   const currUID = req.session['userId'];
   const urlUID = urlDatabase[shortURL].userID;
 
-  if(currUID === urlUID){
+  if(currUID === urlUID){ 
+    //the url object in both userDB and urlDB are referencing the identical object; no need to update both
     urlDatabase[shortURL].longURL = longURL;
-    urlsForUser(currUID, userDB)[shortURL].longURL = longURL;
   }
 
   res.redirect('/urls');
@@ -185,6 +209,14 @@ app.put('/urls/:shortURL', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
+
+  const currUID = req.session['userId'];
+  const urlObj = urlDatabase[shortURL];
+  const currDate = new Date();
+  const date = currDate.toLocaleString();
+
+  updateCount(urlObj, currUID);
+  updateLog(urlObj, currUID, date);
   res.redirect(longURL);
 });
 
