@@ -45,6 +45,7 @@ const createNewURLObj = function (longURL, userID) {
   return {longURL, userID, counter:{}, log:{}};
 }
 
+// urls for user is simplified as a simple lookup from userDB instead of filtering all of url database
 const urlsForUser = function (id, userDB) {
   return userDB[id].urlDB;
 }
@@ -72,6 +73,7 @@ const getUserByEmail = function (email, userDB) {
   return undefined;
 };
 
+//when non-user visists a shorturl, they are treated as 'visitor'
 const updateCount = function(urlObj, userID){
   if (userID === null) {
     userID = 'visitor';

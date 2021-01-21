@@ -19,8 +19,12 @@ const {
   printDB
 } = require('./helpers');
 
+////////start app ////////////////
+
 const app = express();
 const PORT = 8080;
+
+////////// middleware ////////////
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
@@ -29,7 +33,9 @@ app.use(cookieSession({
 }));
 app.use(methodOverride('_method'));
 
-////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// initialization for testing   //////////////////////////////////////////////////////////
+
 const urlObj1 = { longURL: "https://www.tsn.ca", userID: "userId1" , counter:{}, log:{}};
 const urlObj2 = { longURL: "https://www.google.ca", userID: "userId1", counter:{}, log:{}};
 const urlObj3 = { longURL: "https://www.youtube.com", userID: "userId2", counter:{}, log:{}};
@@ -37,6 +43,7 @@ const urlObj4 = { longURL: "https://www.yahoo.com", userID: "userId2" , counter:
 const urlObj5 = { longURL: "https://www.hotmail.com", userID: "userId3" , counter:{}, log:{}};
 const urlObj6 = { longURL: "https://www.example.edu", userID: "userId3" , counter:{}, log:{}};
 
+// user class contains id, email, password and object containing all url associated by them
 const user1 = new User('userId1' , '1@email.com', bcrypt.hashSync('1111', 10),{
   b6UTxQ: urlObj1,
   i3BoGr: urlObj2
@@ -50,6 +57,7 @@ const user3 = new User('userId3' , '3@email.com', bcrypt.hashSync('3333', 10),{
   222222: urlObj6
 });
 
+// database of all urls
 const urlDatabase ={
   b6UTxQ: urlObj1,
   i3BoGr: urlObj2,
@@ -59,11 +67,12 @@ const urlDatabase ={
   222222: urlObj6
 };
 
+// user database 
 const userDB = {}
 addToUserDB([user1, user2, user3], userDB);
 
-///////////////////////////////////////////////
-///////////////ROUTES //////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////ROUTES ////////////////////////////////////////////////////////////////////////////////
 //home
 app.get('/', (req, res) => {
   res.redirect('/urls');
@@ -160,7 +169,7 @@ app.get('/urls/new', (req,res) => {
   }
  });
 
- // show a url
+ // display a url
 app.get('/urls/:shortURL',(req, res) => {
   const shortURL = req.params.shortURL;
   const urlObj = urlDatabase[shortURL];
