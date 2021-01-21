@@ -36,7 +36,10 @@ class User {
   
   //urlDB editor
   addChangeURL(shortURL, longURL){
-    this._urlDB[shortURL].longURL = longURL;
+    const urlObj = this._urlDB[shortURL];
+    urlObj.longURL = longURL;
+    urlObj.counter = {};
+    urlObj.log = {};
   }
   deleteURL(shortURL) {
     delete this._urlDB[shortURL];

@@ -184,9 +184,9 @@ app.delete('/urls/:shortURL', (req, res) => {
   if(currUID === urlUID){
     // need to delete urlobj from both userDB and urlDB
     delete urlDatabase[shortURL];
-    delete urlsForUser(currUID, userDB)[shortURL];
+    userDB[currUID].deleteURL(shortURL);
   }
-  
+
   res.redirect('/urls');
 });
 
@@ -199,9 +199,8 @@ app.put('/urls/:shortURL', (req, res) => {
 
   if(currUID === urlUID){ 
     //the url object in both userDB and urlDB are referencing the identical object; no need to update both
-    urlDatabase[shortURL].longURL = longURL;
+    userDB[currUID].addChangeURL(shortURL, longURL);
   }
-
   res.redirect('/urls');
 });
 
@@ -218,7 +217,6 @@ app.get('/u/:shortURL', (req, res) => {
   updateCount(urlObj, currUID);
   updateLog(urlObj, currUID, date);
   res.redirect(longURL);
-  console.log(urlObj);
 });
 
 /////////////////////////////////////////////
