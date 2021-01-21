@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 const generateRandomString = function(len){
   let result = '';
   const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
@@ -35,7 +37,7 @@ const checkValidNewUser = function (id, email, pw, vpw, userDB){
 const authenticateLogin = function(id, password, userDB){
   if(userDB[id]){
     const correctPW = userDB[id].password;
-    return password === correctPW;
+    return bcrypt.compareSync(password, correctPW);
   }
   return false;
 }

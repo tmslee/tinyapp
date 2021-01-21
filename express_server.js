@@ -3,6 +3,8 @@ const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const {User} = require('./user');
+const bcrypt = require('bcrypt');
+
 const {
   generateRandomString, 
   addToUserDB, 
@@ -21,12 +23,12 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 
 ////////////////////////////////////////////////////////////////////////////
-const user1 = new User('userId1' , '1@email.com', '1111',{
+const user1 = new User('userId1' , '1@email.com', bcrypt.hashSync('1111', 10),{
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userId1" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "userId1" }
 });
-const user2 = new User('userId2' , '2@email.com', '2222');
-const user3 = new User('userId3' , '3@email.com', '3333');
+const user2 = new User('userId2' , '2@email.com', bcrypt.hashSync('2222', 10));
+const user3 = new User('userId3' , '3@email.com', bcrypt.hashSync('3333', 10));
 
 const userDB = {}
 addToUserDB([user1, user2, user3], userDB);
@@ -81,7 +83,8 @@ app.post('/register', (req,res) => {
   const {newId, newEmail, newPassword, verPassword} = req.body;
   
   if(checkValidNewUser(newId, newEmail, newPassword, verPassword, userDB)){
-    userDB[newId] = new User(newId, newEmail, newPassword);
+    const hashedPW = bcrypt.hashSync(newPassword, 10);
+    userDB[newId] = new User(newId, newEmail, hashedPW);
     res.cookie('userId', newId);
     res.redirect('/urls');
   }
@@ -95,7 +98,6 @@ app.post('/register', (req,res) => {
 // display all created url
 app.get('/urls', (req, res) => {
   const uID = req.cookies['userId'];
-  console.log(uID);
   if (!uID) res.redirect('/login');  
   else {
     const templateVars = {
