@@ -218,6 +218,7 @@ app.get('/u/:shortURL', (req, res) => {
   updateCount(urlObj, currUID);
   updateLog(urlObj, currUID, date);
   res.redirect(longURL);
+  console.log(urlObj);
 });
 
 /////////////////////////////////////////////

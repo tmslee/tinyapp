@@ -86,7 +86,7 @@ const updateCount = function(urlObj, userID){
 };
 
 const updateLog = function(urlObj, userID, dateString){
-  if(userID === null){
+  if(!userID){
     userID = 'visitor';
   }
   urlObj.log[dateString] = userID;
