@@ -75,7 +75,7 @@ const getUserByEmail = function (email, userDB) {
 
 //when non-user visists a shorturl, they are treated as 'visitor'
 const updateCount = function(urlObj, userID){
-  if (userID === null) {
+  if (!userID) {
     userID = 'visitor';
   }
   
