@@ -28,7 +28,7 @@ const checkValidNewUser = function (id, email, pw, vpw, userDB) {
   if (pw !== vpw) return false;
 
   for (const user in userDB) {
-    if(user.email === email) return false;
+    if(userDB[user].email === email) return false;
   }
   return true;
 }
@@ -94,6 +94,18 @@ const updateLog = function(urlObj, userID, dateString){
   urlObj.log[dateString] = userID;
 };
 
+const isLoggedIn = function(req) {
+  return req.session['userId'];
+};
+
+const urlExists = function(urlID, urlDB) {
+  return urlDB[urlID];
+};
+
+const permissionAllowed = function(currentUID, premittedUID) {
+  return currentUID === premittedUID;
+};
+
 module.exports = {
   generateRandomString, 
   addToUserDB, 
@@ -104,5 +116,8 @@ module.exports = {
   updateCount,
   updateLog,
   getUserByEmail,
-  printDB
+  printDB,
+  isLoggedIn,
+  urlExists,
+  permissionAllowed
 };

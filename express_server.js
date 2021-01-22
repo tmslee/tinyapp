@@ -16,7 +16,10 @@ const {
   updateCount,
   updateLog,
   getUserByEmail,
-  printDB
+  printDB,
+  isLoggedIn,
+  urlExists,
+  permissionAllowed
 } = require('./helpers');
 
 ////////start app ////////////////
@@ -71,22 +74,27 @@ const urlDatabase ={
 const userDB = {}
 addToUserDB([user1, user2, user3], userDB);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////ROUTES ////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////ROUTES ///////////////////////////////////////////////////////////////////////////////
+
 //home
 app.get('/', (req, res) => {
-  res.redirect('/urls');
+  if (!isLoggedIn(req)) res.redirect('/login');
+  else res.redirect('/urls');
 });
 
 ////////////////////////////////////////////////////////////////////////
-// USER AUTH///////////////////////////////////////////////////////////
+// USER AUTH////////////////////////////////////////////////////////////
 
 // login and logout
 app.get('/login', (req,res) => {
-  const templateVars = {
-    user: userDB[req.session['userId']],
-  };
-  res.render('login', templateVars);
+  if (isLoggedIn(req)) res.redirect('/urls');
+  else {
+    const templateVars = {
+      user: userDB[req.session['userId']]
+    };
+    res.render('login', templateVars);
+  }
 });
 
 app.put('/login', (req, res) => {
@@ -94,8 +102,9 @@ app.put('/login', (req, res) => {
   const password = req.body.password;
   if (authenticateLogin(userId, password, userDB)) {
     req.session['userId'] = userId;
+    res.redirect('/urls');
   }
-  res.redirect('/urls');
+  else res.send("<p>Log in failed: please enter the correct credentials</p>"); 
 });
 
 app.put('/logout', (req, res) => {
@@ -105,10 +114,13 @@ app.put('/logout', (req, res) => {
 
 // register page
 app.get('/register', (req,res) => {
-  const templateVars = {
-    user: userDB[req.session['userId']]
-  };
-  res.render('register', templateVars);
+  if (isLoggedIn(req)) res.redirect('/urls');
+  else {
+    const templateVars = {
+      user: userDB[req.session['userId']]
+    };
+    res.render('register', templateVars);
+  }
 });
 
 // register acc
@@ -131,7 +143,7 @@ app.post('/register', (req,res) => {
 // display all created url
 app.get('/urls', (req, res) => {
   const uID = req.session['userId'];
-  if (!uID) res.redirect('/login');  
+  if (!isLoggedIn(req)) res.send("<p>Please log in to view your shortened urls</p>"); 
   else {
     const templateVars = {
       urls: urlsForUser(uID, userDB), 
@@ -142,45 +154,52 @@ app.get('/urls', (req, res) => {
 });
 
 // create new url
-app.post('/urls_new', (req,res) => {
-  let shortURL = '';
-  while(!shortURL || urlDatabase[shortURL]) shortURL = generateRandomString(6);
-
-  const longURL = req.body.longURL;
+app.post('/urls', (req,res) => {
   const uID = req.session['userId'];
-
-  newURLObj = createNewURLObj(longURL, uID);
-  urlDatabase[shortURL] = newURLObj;
-  urlsForUser(uID, userDB)[shortURL] = newURLObj;
-
-  res.redirect(`/urls/${shortURL}`);
+  if (!isLoggedIn(req)) res.send("<p>Please log in to make a new url</p>"); 
+  else {
+    let shortURL = '';
+    while(!shortURL || urlDatabase[shortURL]) shortURL = generateRandomString(6);
+    const longURL = req.body.longURL;
+  
+    newURLObj = createNewURLObj(longURL, uID);
+    urlDatabase[shortURL] = newURLObj;
+    urlsForUser(uID, userDB)[shortURL] = newURLObj;
+  
+    res.redirect(`/urls/${shortURL}`);
+  }
 });
 
 // get create new url page
 app.get('/urls/new', (req,res) => {
-  const uID = req.session['userId'];
-  if(uID){
+  if(isLoggedIn(req)){
     const templateVars = { 
-      user: userDB[uID]
+      user: userDB[req.session['userId']]
     };
     res.render('urls_new', templateVars);
   } else{
     res.redirect('/login');
   }
- });
+});
 
  // display a url
 app.get('/urls/:shortURL',(req, res) => {
+  const currUID = req.session['userId'];
   const shortURL = req.params.shortURL;
   const urlObj = urlDatabase[shortURL];
-  const user = userDB[req.session['userId']];
-  const longURL = urlObj.longURL;
-  
-  const counter = urlObj.counter;
-  const log = urlObj.log;
 
-  const templateVars = {shortURL, longURL, user, counter, log};
-  res.render('urls_show', templateVars);
+  if (!isLoggedIn(req)) res.send("<p>Please log in to view your shortened url</p>"); 
+  else if (!urlExists(shortURL, urlDatabase)) res.send("<p>Please enter a valid shortURL</p>"); 
+  else if(!permissionAllowed(currUID, urlObj.userID)) res.send("<p>Please enter a shortURL owned by you</p>"); 
+  else{
+    const longURL = urlObj.longURL;
+    const user = userDB[currUID];
+    const counter = urlObj.counter;
+    const log = urlObj.log;
+  
+    const templateVars = {shortURL, longURL, user, counter, log};
+    res.render('urls_show', templateVars);
+  }
 });
 
 
@@ -190,7 +209,9 @@ app.delete('/urls/:shortURL', (req, res) => {
   const currUID = req.session['userId'];
   const urlUID = urlDatabase[shortURL].userID;
 
-  if(currUID === urlUID){
+  if (!isLoggedIn(req)) res.send("<p>Please log in to edit your url</p>");
+  else if (!permissionAllowed(currUID, urlUID)) res.send("<p>you do not own this url and have no access to edit it</p>");
+  else {
     // need to delete urlobj from both userDB and urlDB
     delete urlDatabase[shortURL];
     userDB[currUID].deleteURL(shortURL);
@@ -201,31 +222,35 @@ app.delete('/urls/:shortURL', (req, res) => {
 
 // edit url
 app.put('/urls/:shortURL', (req, res) => {
-  const shortURL = req.params.shortURL;
-  const longURL = req.body.longURL;
   const currUID = req.session['userId'];
   const urlUID = urlDatabase[shortURL].userID;
+  const shortURL = req.params.shortURL;
+  const longURL = req.body.longURL;
 
-  if(currUID === urlUID){ 
+  if (!isLoggedIn(req)) res.send("<p>Please log in to edit your url</p>");
+  else if (!permissionAllowed(currUID, urlUID)) res.send("<p>you do not own this url and have no access to edit it</p>");
+  else { 
     //the url object in both userDB and urlDB are referencing the identical object; no need to update both
     userDB[currUID].addChangeURL(shortURL, longURL);
+    res.redirect('/urls');
   }
-  res.redirect('/urls');
 });
 
 // redirect to longURL
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-
-  const currUID = req.session['userId'];
-  const urlObj = urlDatabase[shortURL];
-  const currDate = new Date();
-  const date = currDate.toLocaleString();
-
-  updateCount(urlObj, currUID);
-  updateLog(urlObj, currUID, date);
-  res.redirect(longURL);
+  if (!urlExists(shortURL, urlDatabase)) res.send("<p>Please enter a existing shortURL</p>");
+  else {
+    const longURL = urlDatabase[shortURL].longURL;
+    const currUID = req.session['userId'];
+    const urlObj = urlDatabase[shortURL];
+    const currDate = new Date();
+    const date = currDate.toLocaleString();
+  
+    updateCount(urlObj, currUID);
+    updateLog(urlObj, currUID, date);
+    res.redirect(longURL);
+  } 
 });
 
 /////////////////////////////////////////////
