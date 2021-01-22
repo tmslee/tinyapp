@@ -79,8 +79,11 @@ addToUserDB([user1, user2, user3], userDB);
 
 //home
 app.get('/', (req, res) => {
-  if (!isLoggedIn(req)) res.redirect('/login');
-  else res.redirect('/urls');
+  if (!isLoggedIn(req)) {
+    res.redirect('/login');
+  } else {
+    res.redirect('/urls');
+  }
 });
 
 ////////////////////////////////////////////////////////////////////////
@@ -88,8 +91,9 @@ app.get('/', (req, res) => {
 
 // login and logout
 app.get('/login', (req,res) => {
-  if (isLoggedIn(req)) res.redirect('/urls');
-  else {
+  if (isLoggedIn(req)) {
+    res.redirect('/urls');
+  } else {
     const templateVars = {
       user: userDB[req.session['userId']]
     };
@@ -103,8 +107,9 @@ app.put('/login', (req, res) => {
   if (authenticateLogin(userId, password, userDB)) {
     req.session['userId'] = userId;
     res.redirect('/urls');
+  } else {
+    res.status(404).redirect('/error/incorrect login credentials');
   }
-  else res.send("<p>Log in failed: please enter the correct credentials</p>"); 
 });
 
 app.put('/logout', (req, res) => {
@@ -114,8 +119,9 @@ app.put('/logout', (req, res) => {
 
 // register page
 app.get('/register', (req,res) => {
-  if (isLoggedIn(req)) res.redirect('/urls');
-  else {
+  if (isLoggedIn(req)) {
+    res.redirect('/urls');
+  } else {
     const templateVars = {
       user: userDB[req.session['userId']]
     };
@@ -134,7 +140,7 @@ app.post('/register', (req,res) => {
     res.redirect('/urls');
   }
   else{
-    res.status(404).send('incorrect registration parameters');
+    res.status(404).redirect('/error/incorrect registration parameters');
   } 
 });
 
@@ -143,8 +149,9 @@ app.post('/register', (req,res) => {
 // display all created url
 app.get('/urls', (req, res) => {
   const uID = req.session['userId'];
-  if (!isLoggedIn(req)) res.send("<p>Please log in to view your shortened urls</p>"); 
-  else {
+  if (!isLoggedIn(req)) {
+    res.status(404).redirect('/error/Please log in to view your shortened urls');
+  } else {
     const templateVars = {
       urls: urlsForUser(uID, userDB), 
       user: userDB[uID]
@@ -156,8 +163,9 @@ app.get('/urls', (req, res) => {
 // create new url
 app.post('/urls', (req,res) => {
   const uID = req.session['userId'];
-  if (!isLoggedIn(req)) res.send("<p>Please log in to make a new url</p>"); 
-  else {
+  if (!isLoggedIn(req)) {
+    res.status(404).redirect('/error/Please log in to make a new url');
+  } else {
     let shortURL = '';
     while(!shortURL || urlDatabase[shortURL]) shortURL = generateRandomString(6);
     const longURL = req.body.longURL;
@@ -173,11 +181,9 @@ app.post('/urls', (req,res) => {
 // get create new url page
 app.get('/urls/new', (req,res) => {
   if(isLoggedIn(req)){
-    const templateVars = { 
-      user: userDB[req.session['userId']]
-    };
+    const templateVars = {user: userDB[req.session['userId']]};
     res.render('urls_new', templateVars);
-  } else{
+  } else {
     res.redirect('/login');
   }
 });
@@ -188,10 +194,13 @@ app.get('/urls/:shortURL',(req, res) => {
   const shortURL = req.params.shortURL;
   const urlObj = urlDatabase[shortURL];
 
-  if (!isLoggedIn(req)) res.send("<p>Please log in to view your shortened url</p>"); 
-  else if (!urlExists(shortURL, urlDatabase)) res.send("<p>Please enter a valid shortURL</p>"); 
-  else if(!permissionAllowed(currUID, urlObj.userID)) res.send("<p>Please enter a shortURL owned by you</p>"); 
-  else{
+  if (!isLoggedIn(req)) {
+    res.status(404).redirect('/error/Please log in to view your shortened url');
+  } else if (!urlExists(shortURL, urlDatabase)) {
+    res.status(404).redirect('/error/Please enter a valid shortURL');
+  } else if (!permissionAllowed(currUID, urlObj.userID)) {
+    res.status(404).redirect('/error/Please enter a shortURL owned by you');
+  } else{
     const longURL = urlObj.longURL;
     const user = userDB[currUID];
     const counter = urlObj.counter;
@@ -209,15 +218,16 @@ app.delete('/urls/:shortURL', (req, res) => {
   const currUID = req.session['userId'];
   const urlUID = urlDatabase[shortURL].userID;
 
-  if (!isLoggedIn(req)) res.send("<p>Please log in to edit your url</p>");
-  else if (!permissionAllowed(currUID, urlUID)) res.send("<p>you do not own this url and have no access to edit it</p>");
-  else {
+  if (!isLoggedIn(req)) {
+    res.status(404).redirect('/error/Please log in to delete your url');
+  } else if (!permissionAllowed(currUID, urlUID)) {
+    res.status(404).redirect('/error/you do not own this url and have no access to edit it');
+  } else {
     // need to delete urlobj from both userDB and urlDB
     delete urlDatabase[shortURL];
     userDB[currUID].deleteURL(shortURL);
+    res.redirect('/urls');
   }
-
-  res.redirect('/urls');
 });
 
 // edit url
@@ -227,9 +237,11 @@ app.put('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
 
-  if (!isLoggedIn(req)) res.send("<p>Please log in to edit your url</p>");
-  else if (!permissionAllowed(currUID, urlUID)) res.send("<p>you do not own this url and have no access to edit it</p>");
-  else { 
+  if (!isLoggedIn(req)) {
+    res.status(404).redirect('/error/Please log in to edit your url');
+  } else if (!permissionAllowed(currUID, urlUID)) {
+    res.status(404).redirect('/error/you do not own this url and have no access to edit it');
+  } else { 
     //the url object in both userDB and urlDB are referencing the identical object; no need to update both
     userDB[currUID].addChangeURL(shortURL, longURL);
     res.redirect('/urls');
@@ -239,8 +251,9 @@ app.put('/urls/:shortURL', (req, res) => {
 // redirect to longURL
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  if (!urlExists(shortURL, urlDatabase)) res.send("<p>Please enter a existing shortURL</p>");
-  else {
+  if (!urlExists(shortURL, urlDatabase)) {
+    res.status(404).redirect('/error/Please enter a existing shortURL');
+  } else {
     const longURL = urlDatabase[shortURL].longURL;
     const currUID = req.session['userId'];
     const urlObj = urlDatabase[shortURL];
@@ -253,6 +266,10 @@ app.get('/u/:shortURL', (req, res) => {
   } 
 });
 
+app.get('/error/:errorMsg', (req, res) => {
+  templateVars = {msg: req.params.errorMsg};
+  res.render('error', templateVars);
+});
 /////////////////////////////////////////////
 app.listen(PORT, () => {
   console.log(`app listening on port ${PORT}`);
