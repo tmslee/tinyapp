@@ -28,7 +28,7 @@
         <% for(let url in urls) { %>
           <tr>
             <td>
-              <a href="/u/<%=url%>"> localhost:8080/u/<%= url %></a>
+              <a href="/u/<%=url%>"><%= url %></a>
             </td>
             <td><%= urls[url].longURL %></td>
             <td><%= Object.keys(urls[url].log).length %></td>
