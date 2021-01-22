@@ -258,7 +258,7 @@ app.get('/u/:shortURL', (req, res) => {
     const currUID = req.session['userId'];
     const urlObj = urlDatabase[shortURL];
     const currDate = new Date();
-    const date = currDate.toLocaleString();
+    const date = currDate.toLocaleString('en-US', {timeZone: 'America/New_York'});
   
     updateCount(urlObj, currUID);
     updateLog(urlObj, currUID, date);

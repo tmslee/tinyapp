@@ -37,6 +37,7 @@
       <thead>
         <tr>
           <th scope="col">Time Stamp</th>
+          <th scope="col">Time Zone</th>
           <th scope="col">Visitor ID</th>
         </tr>
       </thead>
@@ -44,6 +45,7 @@
         <% for(let timeStamp in log) { %>
           <tr>
             <td><%= timeStamp%></td>
+            <td>EST (GMT-5)</td>
             <td><%= log[timeStamp]%></td>
           </tr>
         <% } %>
