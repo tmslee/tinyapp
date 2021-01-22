@@ -6,6 +6,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["TinyApp"](https://github.com/tmslee/tinyapp/blob/master/docs/urls-page.png)
 
+-----------------------------------------------------------------------------
+
 ## Dependencies
 
 - Node.js
@@ -32,9 +34,17 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["Log in page"](https://github.com/tmslee/tinyapp/blob/master/docs/login-page.png)
 
-!["Register page](https://github.com/tmslee/tinyapp/blob/master/docs/register-page.png)
+-----------------------------------------------------------------------------
 
 - TinyApp allows full access to its url shortening features to registered users
+
+-----------------------------------------------------------------------------
+
+!["Register page](https://github.com/tmslee/tinyapp/blob/master/docs/register-page.png)
+
+-----------------------------------------------------------------------------
+
+
 
 - Registration requires a new user ID and email that has not been registered with the app previously
 
@@ -46,13 +56,18 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ![urls page](https://github.com/tmslee/tinyapp/blob/master/docs/urls-page.png)
 
-![url edit page](https://github.com/tmslee/tinyapp/blob/master/docs/url_show-page.png)
-
+-----------------------------------------------------------------------------
 - Users have access to all the short urls they have created
 
 - Once created anyone can use the short url as a link to its corresponding url
 
 - Users can edit, delete, and view (the details) only the url that they have created
+
+-----------------------------------------------------------------------------
+
+![url edit page](https://github.com/tmslee/tinyapp/blob/master/docs/url_show-page.png)
+
+-----------------------------------------------------------------------------
 
 - Each short url keeps track of which user has accessed it when
 
@@ -63,5 +78,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 ## Error Page
 
 - when trying to access routes without permission or when the app is provided with bad input, the app will redirect the user to an error page displaying a relevant error message as such:
+
+-----------------------------------------------------------------------------
 
 ![error page](https://github.com/tmslee/tinyapp/blob/master/docs/error-page.png)
